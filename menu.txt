@@ -1,0 +1,4 @@
+Makanan,Mapo Tofu,35000,0,Utama
+Makanan,Hot Pot,45000,2,Utama
+Minuman,Green Tea,10000,Medium,Dingin
+Minuman,Black Tea,12000,Medium,Dingin
