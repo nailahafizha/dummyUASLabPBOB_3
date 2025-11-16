@@ -8,10 +8,13 @@ public class Pesanan {
     private String status;
     private List<DetailPesanan> daftarItem;
     private Meja meja;
+    private Customer customer; // <-- [TAMBAHAN 1] Tambahkan field ini
 
-    public Pesanan(int idPesanan, Meja meja) {
+    // [UBAH DI SINI] Tambahkan 'Customer customer' di parameter
+    public Pesanan(int idPesanan, Meja meja, Customer customer) { 
         this.idPesanan = idPesanan;
         this.meja = meja;
+        this.customer = customer; // <-- [TAMBAHAN 2] Tambahkan baris ini
         this.status = "Dipesan"; // Status awal
         this.daftarItem = new ArrayList<>();
     }
@@ -44,4 +47,9 @@ public class Pesanan {
     public List<DetailPesanan> getDaftarItem() { return daftarItem; }
     public Meja getMeja() { return meja; }
     public void setStatus(String status) { this.status = status; }
+
+    // <-- [TAMBAHAN 3] Tambahkan getter baru ini
+    public Customer getCustomer() {
+        return this.customer;
+    }
 }

@@ -28,8 +28,6 @@ public class RestaurantSystem {
         this.daftarPesanan.add(pesanan);
     }
 
-    // Sesuai diagram: +lihatMenu()
-    // @Override  <-- HAPUS BARIS INI
     public void lihatMenu() {
         System.out.println("\n--- Daftar Menu Restoran ---");
         for (int i = 0; i < daftarMenu.size(); i++) {
