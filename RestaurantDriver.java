@@ -4,13 +4,14 @@ import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
 
+// Kelas utama (Driver) untuk menjalankan sistem restoran
 public class RestaurantDriver {
     
-    // Kita buat Scanner dan Sistem sebagai static agar bisa diakses
-    // oleh method-method helper di bawah.
+    // Objek utama sistem dan Scanner untuk input global
     private static RestaurantSystem system = new RestaurantSystem();
     private static Scanner sc = new Scanner(System.in);
 
+    // Menjalankan loop menu utama
     public static void main(String[] args) {
         System.out.println("Selamat Datang di RestaurantDriver!");
 
@@ -25,21 +26,22 @@ public class RestaurantDriver {
 
             switch (pilihan) {
                 case 1:
-                    loginMenu();
+                    loginMenu(); // Masuk sebagai Customer atau Pegawai
                     break;
                 case 2:
-                    registerMenu();
+                    registerMenu(); // Mendaftar Customer baru
                     break;
                 case 0:
                     System.out.println("Terima kasih!");
                     sc.close();
-                    return;
+                    return; // Keluar dari program
                 default:
                     System.out.println("Pilihan tidak valid.");
             }
         }
     }
-    
+
+    // Menangani proses login
     private static void loginMenu() {
         System.out.print("Masukkan ID: ");
         int id = getInputAngka();
@@ -63,7 +65,8 @@ public class RestaurantDriver {
             menuPegawai((Pegawai) user);
         }
     }
-    
+
+    // Menangani registrasi Customer baru dan menyimpan ke file
     private static void registerMenu() {
         System.out.print("Masukkan Nama Baru: ");
         String nama = sc.nextLine();
@@ -78,10 +81,9 @@ public class RestaurantDriver {
         }
     }
     
-    // [INI BAGIAN YANG BERUBAH TOTAL]
-    // Method ini sekarang menjadi sub-menu untuk Customer
+    // Menu loop setelah Customer berhasil login
     private static void menuCustomer(Customer c) {
-        // Kita buat menu loop untuk customer
+        // Menu loop untuk customer
         while (true) {
             System.out.println("\n--- Menu Customer: " + c.getNama() + " ---");
             System.out.println("1. Buat Pesanan Baru");
@@ -92,11 +94,9 @@ public class RestaurantDriver {
             sc.nextLine(); // consume newline
 
             if (pilihan == 1) {
-                // Panggil logika buat pesanan
-                buatPesananBaru(c); // Kita pindah ke method baru
+                buatPesananBaru(c); // Kita pindah ke method buat pesanan
             } else if (pilihan == 2) {
-                // Panggil logika bayar
-                bayarPesananCustomer(c);
+                bayarPesananCustomer(c); // Pindah ke method bayar pesanan
             } else if (pilihan == 0) {
                 break; // Keluar dari loop, kembali ke menu utama
             } else {
@@ -104,11 +104,13 @@ public class RestaurantDriver {
             }
         }
     }
-    
+
+    // Menu untuk Pegawai
     private static void menuPegawai(Pegawai p) {
         // Alur untuk Pegawai
         switch (p.getPeran().toLowerCase()) {
             case "pelayan":
+                // Pelayan: Update status pesanan (misal: "Diantar", "Dibatalkan")
                 System.out.println("Menu Pelayan (Update Status Pesanan)");
                 System.out.print("Masukkan ID Pesanan: ");
                 int id = getInputAngka();
@@ -124,6 +126,7 @@ public class RestaurantDriver {
                 break;
                 
             case "koki":
+                // Koki: Melihat pesanan 'Dipesan' dan mengubahnya menjadi 'Selesai Dimasak'
                 System.out.println("\n--- Daftar Pesanan (Status: Dipesan) ---");
                 List<Pesanan> pesananMasuk = system.getDaftarPesananByStatus("Dipesan");
                 if (pesananMasuk.isEmpty()) {
@@ -131,7 +134,7 @@ public class RestaurantDriver {
                     return;
                 }
                 for (Pesanan psn : pesananMasuk) {
-                    psn.tampilkanDetail(); // Perlu method helper di Pesanan
+                    psn.tampilkanDetail(); 
                 }
                 
                 System.out.print("Masukkan ID Pesanan yang selesai dimasak: ");
@@ -147,6 +150,7 @@ public class RestaurantDriver {
                 break;
                 
             case "kasir":
+                // Kasir: Melihat pesanan 'Siap Bayar' dan memproses Transaksi
                 System.out.println("\n--- Daftar Pesanan (Status: Selesai Dimasak atau Menunggu Pembayaran Cash) ---");
                 List<Pesanan> pesananSiapBayar = system.getDaftarPesananByStatus("Selesai Dimasak");
                 pesananSiapBayar.addAll(system.getDaftarPesananByStatus("Menunggu Pembayaran Cash")); // Tambahkan pesanan cash
@@ -170,10 +174,11 @@ public class RestaurantDriver {
                     Pembayaran metodePembayaran = null;
                     
                     if (pesananBayar.getStatus().equals("Menunggu Pembayaran Cash")) {
+                        // Kasir memproses pembayaran Cash yang dipilih Customer
                         System.out.println("Customer memilih Cash. Memproses pembayaran...");
                         metodePembayaran = new CashPayment();
                     } else {
-                        // Jika status "Selesai Dimasak", berarti Kasir yang pilih
+                        // Jika status "Selesai Dimasak", berarti Kasir yang pilih metode pembayaran
                         System.out.println("Total Tagihan: Rp " + pesananBayar.hitungTotal());
                         System.out.println("Pilih Metode Pembayaran:");
                         System.out.println("1. Cash");
@@ -200,7 +205,7 @@ public class RestaurantDriver {
                     if(transaksi.isStatusKonfirmasi()) {
                         System.out.println("Pembayaran Berhasil!");
                         Struk struk = new Struk();
-                        struk.Cetak(transaksi);
+                        struk.Cetak(transaksi); // Cetak struk
                     } else {
                         System.out.println("Pembayaran Gagal.");
                     }
@@ -211,7 +216,7 @@ public class RestaurantDriver {
         }
     }
     
-    // Helper untuk input angka yang aman
+    // Untuk input angka yang aman
     private static int getInputAngka() {
         while(true) {
             try {
@@ -223,8 +228,7 @@ public class RestaurantDriver {
         }
     }
 
-    // [METHOD HELPER BARU 1]
-    // Ini adalah logika 'buatPesanan' yang kita pindah dari menuCustomer lama
+    // Untuk membuat objek Pesanan dan DetailPesanan
     private static void buatPesananBaru(Customer c) {
         try {
             System.out.print("Masukkan Nomor Meja: ");
@@ -234,11 +238,11 @@ public class RestaurantDriver {
             int idPesananBaru = system.getDaftarPesanan().size() + 1;
             Meja meja = new Meja(noMeja);
             
-            // PENTING: Pastikan Customer.java dan Pesanan.java sudah di-update
+            // Customer membuat objek Pesanan
             Pesanan pesanan = c.buatPesanan(idPesananBaru, meja); 
             
             while(true) {
-                system.lihatMenu(); // Tampilkan menu
+                system.lihatMenu(); // Tampilkan daftar menu
                 System.out.print("Pilih Nomor Menu (0 untuk selesai): ");
                 int noMenu = getInputAngka();
                 sc.nextLine();
@@ -249,7 +253,8 @@ public class RestaurantDriver {
                     System.out.println("Nomor menu tidak valid.");
                     continue;
                 }
-                
+
+                // Meminta detail dan menambahkan DetailPesanan ke Pesanan
                 System.out.print("Jumlah: ");
                 int jumlah = getInputAngka();
                 sc.nextLine();
@@ -273,33 +278,31 @@ public class RestaurantDriver {
         }
     }
 
-    // [METHOD HELPER BARU 2]
-    // Ini adalah logika baru untuk Customer membayar
+    // Untuk melihat status dan memproses pembayaran pesanan customer
     private static void bayarPesananCustomer(Customer c) {
         System.out.println("\n--- Pesanan Saya (ID: " + c.getId() + ") ---");
         
-        // 1. Cari pesanan yang 'Selesai Dimasak' DAN milik customer ini
+        // Cari pesanan milik Customer yang sudah 'Selesai Dimasak'
         Pesanan pesananBayar = null;
         for (Pesanan p : system.getDaftarPesananByStatus("Selesai Dimasak")) {
-            // PENTING: Pastikan Pesanan.java punya getCustomer()
             if (p.getCustomer().getId() == c.getId()) { 
                 pesananBayar = p;
                 break; // Ambil satu pesanan saja
             }
         }
         
-        // 2. Jika tidak ada yang siap bayar
+        // Jika tidak ada yang siap bayar
         if (pesananBayar == null) {
             System.out.println("Anda tidak memiliki pesanan yang siap dibayar.");
             System.out.println("(Pastikan Koki sudah menyelesaikan masakan Anda).");
             return;
         }
         
-        // 3. [BILL DITAMPILKAN KE CUSTOMER]
+        // Tampilkan tagihan dan rincian
         System.out.println("Pesanan Anda (ID: " + pesananBayar.getIdPesanan() + ") siap dibayar!");
-        pesananBayar.tampilkanDetail(); // Tampilkan rincian bill
+        pesananBayar.tampilkanDetail(); 
         
-        // 4. [CUSTOMER MEMILIH METODE BAYAR]
+        // Customer Memilihan metode pembayaran
         System.out.println("Pilih Metode Pembayaran:");
         System.out.println("1. Cash (Bayar di Kasir)");
         System.out.println("2. Card (Proses Sekarang)");
@@ -320,16 +323,15 @@ public class RestaurantDriver {
             default: System.out.println("Metode tidak valid."); return;
         }
         
-        // 5. Proses pembayaran Card/QRIS
+        // Proses pembayaran Card/QRIS
         int idTransaksi = (int) (System.currentTimeMillis() % 10000);
         Transaksi transaksi = new Transaksi(idTransaksi, pesananBayar, metodePembayaran);
         
-        // Oper 'sc' untuk proses (jika Pembayaran butuh input)
-        transaksi.konfirmasi(sc); 
+        transaksi.konfirmasi(sc); // Eksekusi pembayaran
         
         if(transaksi.isStatusKonfirmasi()) {
             System.out.println("Pembayaran Berhasil!");
-            // [STRUK DITAMPILKAN KE CUSTOMER]
+            // Struk ditampilkan ke customer
             Struk struk = new Struk();
             struk.Cetak(transaksi);
         } else {
