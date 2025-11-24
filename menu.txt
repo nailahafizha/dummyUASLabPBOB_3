@@ -1,0 +1,6 @@
+Makanan,Mapo Tofu,35000,0,Utama
+Makanan,Hot Pot,45000,2,Utama
+Makanan,Kwetiau Siram Seafood,42000,1,Utama
+Makanan,Crystal Prawn Dumplings (4 pcs),38000,1,Utama
+Minuman,Green Tea,10000,Medium,Dingin
+Minuman,Black Tea,12000,Medium,Dingin
