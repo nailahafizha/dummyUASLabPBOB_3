@@ -8,7 +8,9 @@ public class Pegawai extends Akun {
         this.peran = peran;
     }
 
-    public String getPeran() { return peran; }
+    public String getPeran() {
+         return peran; 
+        }
 
     public void updateStatusPesanan(Pesanan pesanan, String status) {
         pesanan.setStatus(status);

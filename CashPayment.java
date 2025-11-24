@@ -22,5 +22,7 @@ public class CashPayment implements Pembayaran {
     }
 
     @Override
-    public String getNamaMetode() { return "Cash"; }
+    public String getNamaMetode() { 
+        return "Cash"; 
+    }
 }

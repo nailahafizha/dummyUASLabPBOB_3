@@ -11,9 +11,15 @@ public class DetailPesanan {
         this.catatan = (catatan == null || catatan.isEmpty()) ? "-" : catatan;
     }
 
-    public MenuItem getItem() { return item; }
-    public int getJumlah() { return jumlah; }
-    public String getCatatan() { return catatan; }
+    public MenuItem getItem() {
+         return item; 
+        }
+    public int getJumlah() { 
+        return jumlah; 
+        }
+    public String getCatatan() { 
+        return catatan; 
+    }
 
     public int getSubtotal() {
         return item.getHarga() * jumlah;

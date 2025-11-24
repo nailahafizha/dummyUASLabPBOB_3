@@ -27,8 +27,17 @@ public class Transaksi {
         }
     }
 
-    public boolean isStatusKonfirmasi() { return statusKonfirmasi; }
-    public Pesanan getPesanan() { return pesanan; }
-    public Pembayaran getMetodePembayaran() { return metodePembayaran; }
-    public int getIdTransaksi() { return this.idTransaksi; }
+    public boolean isStatusKonfirmasi() { 
+        return statusKonfirmasi; 
+    }
+    public Pesanan getPesanan() { 
+        return pesanan; 
+    }
+    public Pembayaran getMetodePembayaran() { 
+        return metodePembayaran; 
+    }
+    public int getIdTransaksi() { 
+        return this.idTransaksi; 
+    }
 }
+

@@ -55,8 +55,12 @@ public class AppFrame extends Frame implements WindowListener {
         currentPegawai = null;
     }
 
-    public Pegawai getCurrentPegawai() { return currentPegawai; }
-    public Customer getCurrentCustomer() { return currentCustomer; }
+    public Pegawai getCurrentPegawai() { 
+        return currentPegawai; 
+    }
+    public Customer getCurrentCustomer() { 
+        return currentCustomer; 
+    }
 
     public void windowClosing(WindowEvent e) { dispose(); System.exit(0); }
     public void windowOpened(WindowEvent e) {}

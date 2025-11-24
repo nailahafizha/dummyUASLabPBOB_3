@@ -4,14 +4,14 @@ public class Minuman extends MenuItem {
     private String ukuran;
     private String suhu;
 
-    // Konstruktor. Menginisialisasi nama, harga, ukuran, dan suhu
+    // constructor minuman
     public Minuman(String nama, int harga, String ukuran, String suhu) {
-        super(nama, harga); // Panggil konstruktor superclass
+        super(nama, harga); // Panggil constructor superclass
         this.ukuran = ukuran;
         this.suhu = suhu;
     }
 
-    // Implementasi getInfo(). Mengembalikan deskripsi lengkap Minuman
+    // Implementasi getInfo(), mengembalikan deskripsi lengkap Minuman
     @Override
     public String getInfo() {
         return String.format("%-20s (%s, %s) - Rp %d", getNama(), ukuran, suhu, getHarga());

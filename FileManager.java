@@ -4,7 +4,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-// Kelas utilitas untuk menangani operasi baca (load) dan tulis (save) data dari file
+// class untuk operasi baca (load) dan tulis (save) data dari file
 public class FileManager {
 
     // Konstanta path file untuk data Menu
@@ -82,7 +82,7 @@ public class FileManager {
         return daftarCustomer;
     }
 
-    // Menyimpan (save) objek Customer baru ke FILE_CUSTOMER (mode append)
+    // Menyimpan objek Customer 
     public static void saveCustomer(Customer c) {
         try (FileWriter fw = new FileWriter(FILE_CUSTOMER, true); // true = append mode
              PrintWriter pw = new PrintWriter(fw)) {

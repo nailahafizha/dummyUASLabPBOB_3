@@ -10,7 +10,7 @@ public class Pesanan {
     private Meja meja;
     private Customer customer;
 
-    // Konstruktor Pesanan
+    // constructor Pesanan
     public Pesanan(int idPesanan, Meja meja, Customer customer) {
         this.idPesanan = idPesanan;
         this.meja = meja;

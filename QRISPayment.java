@@ -13,5 +13,7 @@ public class QRISPayment implements Pembayaran {
     }
 
     @Override
-    public String getNamaMetode() { return "QRIS"; }
+    public String getNamaMetode() { 
+        return "QRIS"; 
+    }
 }

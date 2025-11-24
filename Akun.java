@@ -13,9 +13,15 @@ public abstract class Akun {
     }
 
     // Mengembalikan ID
-    public int getId() { return id; }
+    public int getId() { 
+        return id;
+     }
     // Mengembalikan nama
-    public String getNama() { return nama; }
+    public String getNama() { 
+        return nama; 
+    }
     // Mengembalikan password
-    public String getPassword() { return password; }
+    public String getPassword() { 
+        return password; 
+    }
 }
