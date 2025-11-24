@@ -1,6 +1,8 @@
 package dummyUASLabPBOB_3;
 
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +11,7 @@ public class CustomerPanel extends Panel {
 
     private final AppFrame app;
 
-    // Colors close to the screenshot
+    // Colors
     private final Color RED_DARK = AppFrame.RED_DARK;      // #8B0000
     private final Color GOLD = AppFrame.GOLD;             // #DAA520
     private final Color BG_LIGHT = new Color(248, 245, 236);
@@ -24,6 +26,7 @@ public class CustomerPanel extends Panel {
 
     private TextField tfMeja;
     private TextArea taCatatan;
+    private Choice choiceMetode;
 
     private Label lblItemCount;
     private Label lblSubtotal;
@@ -44,7 +47,7 @@ public class CustomerPanel extends Panel {
         updateSummary();
     }
 
-    // ================= HEADER =================
+    // header
     private Panel buildHeader() {
         Panel header = new Panel(new BorderLayout());
         header.setBackground(RED_ACCENT);
@@ -66,6 +69,12 @@ public class CustomerPanel extends Panel {
 
         Panel right = new Panel(new FlowLayout(FlowLayout.RIGHT, 14, 28));
         right.setBackground(RED_ACCENT);
+        
+        // tombol pesanan saya
+        Button btnMyOrder = new Button("Pesanan Saya"); 
+        styleGoldButton(btnMyOrder);
+        btnMyOrder.addActionListener(e -> showMyOrderDialog());
+        
         Button btnLogout = new Button("Logout");
         styleGoldButton(btnLogout);
         btnLogout.addActionListener(e -> {
@@ -73,6 +82,8 @@ public class CustomerPanel extends Panel {
             if (cartList != null) cartList.removeAll();
             app.showPage("HOME");
         });
+        
+        right.add(btnMyOrder);
         right.add(btnLogout);
 
         header.add(titleBox, BorderLayout.CENTER);
@@ -80,7 +91,7 @@ public class CustomerPanel extends Panel {
         return header;
     }
 
-    // ================= CONTENT (3 columns) =================
+    // content
     private Panel buildContent() {
         Panel content = new Panel(new GridLayout(1,3,12,12));
         content.setBackground(BG_LIGHT);
@@ -93,7 +104,7 @@ public class CustomerPanel extends Panel {
         return content;
     }
 
-    // ================= LEFT: MENU COLUMN =================
+    // menu kolom
     private Panel buildMenuColumn() {
         Panel leftWrap = new Panel(new BorderLayout());
         leftWrap.setBackground(BG_LIGHT);
@@ -180,12 +191,9 @@ public class CustomerPanel extends Panel {
         menuListPanel.repaint();
     }
 
-    // Card component for each menu item
+    // komponen card
     private class MenuCardPanel extends Panel {
-        private final MenuItem item;
-
         MenuCardPanel(MenuItem item) {
-            this.item = item;
             setLayout(new BorderLayout());
             setBackground(CARD_BG);
             setPreferredSize(new Dimension(280, 100));
@@ -197,7 +205,6 @@ public class CustomerPanel extends Panel {
             name.setFont(new Font("Serif", Font.BOLD, 15));
             name.setForeground(RED_DARK);
 
-            // DESKRIPSI DIAMBIL DARI GUI MAPPING (bukan dari menu.txt)
             String desc = lookupDeskripsi(item);
 
             Label descLbl = new Label(desc);
@@ -236,28 +243,20 @@ public class CustomerPanel extends Panel {
         }
     }
 
-    // ================= DESKRIPSI KHUSUS GUI (menu.txt TIDAK DIUBAH) =================
+    // deskripsi
     private String lookupDeskripsi(MenuItem item){
         String n = item.getNama().toLowerCase();
 
-        if (n.contains("mapo tofu"))
-            return "Tahu sutra lembut dengan saus Sichuan gurih pedas mala.";
-        if (n.contains("hot pot"))
-            return "Rebusan kuah hangat ala China dengan aneka isian pilihan.";
-        if (n.contains("kwetiau siram seafood"))
-            return "Kwetiau lebar siram saus gurih dengan seafood segar.";
-        if (n.contains("crystal prawn dumplings") || n.contains("hakao"))
-            return "Dumpling bening kenyal berisi udang segar premium.";
-        if (n.contains("green tea"))
-            return "Teh hijau menyegarkan dengan aroma ringan, disajikan dingin.";
-        if (n.contains("black tea"))
-            return "Teh hitam beraroma kuat dan pekat, disajikan dingin.";
+        if (n.contains("mapo tofu")) return "Tahu sutra lembut dengan saus Sichuan gurih pedas mala.";
+        if (n.contains("hot pot")) return "Rebusan kuah hangat ala China dengan aneka isian pilihan.";
+        if (n.contains("kwetiau siram seafood")) return "Kwetiau lebar siram saus gurih dengan seafood segar.";
+        if (n.contains("crystal prawn dumplings") || n.contains("hakao")) return "Dumpling bening kenyal berisi udang segar premium.";
+        if (n.contains("green tea")) return "Teh hijau menyegarkan dengan aroma ringan, disajikan dingin.";
+        if (n.contains("black tea")) return "Teh hitam beraroma kuat dan pekat, disajikan dingin.";
 
-        // fallback kalau belum ada mapping
         return shortDescFromInfo(item.getInfo());
     }
 
-    // ambil atribut singkat dari getInfo() -> isi dalam tanda kurung
     private String shortDescFromInfo(String info){
         if (info == null) return "Menu spesial";
         int open = info.indexOf('(');
@@ -368,7 +367,7 @@ public class CustomerPanel extends Panel {
         return result[0];
     }
 
-    // ================= MIDDLE: CHECKOUT COLUMN =================
+    // checkout kolom
     private Panel buildCheckoutColumn() {
         Panel midWrap = new Panel(new BorderLayout());
         midWrap.setBackground(BG_LIGHT);
@@ -411,7 +410,13 @@ public class CustomerPanel extends Panel {
         taCatatan = new TextArea("", 3, 20, TextArea.SCROLLBARS_VERTICAL_ONLY);
         catBox.add(catLbl, BorderLayout.NORTH);
         catBox.add(taCatatan, BorderLayout.CENTER);
-
+        Panel payBox = new Panel(new BorderLayout()); payBox.setBackground(CARD_BG);
+        payBox.add(fieldLabel("Metode Pembayaran:"), BorderLayout.NORTH);
+        choiceMetode = new Choice();
+        choiceMetode.add("Cash");
+        choiceMetode.add("Card");
+        choiceMetode.add("QRIS");
+        payBox.add(choiceMetode, BorderLayout.CENTER);
         form.add(new Label(""));
         form.add(mejaBox);
         form.add(catBox);
@@ -432,7 +437,7 @@ public class CustomerPanel extends Panel {
         updateSummary();
     }
 
-    // ================= RIGHT: SUMMARY COLUMN =================
+    // summary kolom
     private Panel buildSummaryColumn() {
         Panel rightWrap = new Panel(new BorderLayout());
         rightWrap.setBackground(BG_LIGHT);
@@ -528,7 +533,7 @@ public class CustomerPanel extends Panel {
                 "\nSilakan tunggu pesanan dimasak.");
     }
 
-    // ================= SUMMARY LOGIC =================
+    // summary logic
     private void updateSummary() {
         int itemCount = 0;
         int subtotal = 0;
@@ -549,7 +554,138 @@ public class CustomerPanel extends Panel {
         lblTotal.setText(formatRupiah(total));
     }
 
-    // ================= UI SMALL HELPERS =================
+    // lihat pesanan
+    private void showMyOrderDialog() {
+        Customer c = app.getCurrentCustomer();
+        if (c == null) return;
+
+        // Cari pesanan aktif milik customer ini
+        Pesanan myOrder = null;
+        for (Pesanan p : app.getSystem().getDaftarPesanan()) {
+            if (p.getCustomer().getId() == c.getId() && 
+               (p.getStatus().equals("Dipesan") || p.getStatus().equals("Selesai Dimasak") || p.getStatus().equals("Menunggu Pembayaran Cash"))) {
+                myOrder = p;
+                break; // Asumsi 1 pesanan aktif per customer
+            }
+        }
+
+        Dialog dlg = new Dialog((Frame)app, "Pesanan Saya", true);
+        dlg.setSize(400, 450);
+        dlg.setLayout(new BorderLayout());
+        
+        if (myOrder == null) {
+            dlg.add(new Label("Anda belum memiliki pesanan aktif.", Label.CENTER), BorderLayout.CENTER);
+        } else {
+            TextArea detail = new TextArea();
+            detail.setEditable(false);
+            detail.setFont(new Font("Monospaced", Font.PLAIN, 12));
+            
+            StringBuilder sb = new StringBuilder();
+            sb.append("ID Pesanan: ").append(myOrder.getIdPesanan()).append("\n");
+            sb.append("Status    : ").append(myOrder.getStatus()).append("\n");
+            sb.append("------------------------------\n");
+            for(DetailPesanan dp : myOrder.getDaftarItem()) {
+                sb.append(String.format("%-20s x%d  %s\n", 
+                    dp.getItem().getNama(), dp.getJumlah(), formatRupiah(dp.getSubtotal())));
+            }
+            sb.append("------------------------------\n");
+            sb.append("Subtotal: ").append(formatRupiah(myOrder.hitungSubtotal())).append("\n");
+            sb.append("Pajak & Service (15%): ").append(formatRupiah(myOrder.getPajak() + myOrder.getService())).append("\n");
+            sb.append("GRAND TOTAL: ").append(formatRupiah(myOrder.hitungTotal())).append("\n");
+            
+            detail.setText(sb.toString());
+            dlg.add(detail, BorderLayout.CENTER);
+            
+            // Tombol Aksi Berdasarkan Status
+            if (myOrder.getStatus().equals("Selesai Dimasak")) {
+                Button btnPay = new Button("Bayar Sekarang");
+                styleGoldButton(btnPay);
+                
+                Pesanan finalP = myOrder;
+                btnPay.addActionListener(e -> {
+                    dlg.setVisible(false);
+                    processCustomerPayment(finalP);
+                });
+                
+                dlg.add(btnPay, BorderLayout.SOUTH);
+            } else if (myOrder.getStatus().equals("Menunggu Pembayaran Cash")) {
+                Label info = new Label("Silakan bayar tunai di kasir.", Label.CENTER);
+                info.setForeground(RED_DARK);
+                dlg.add(info, BorderLayout.SOUTH);
+            } else {
+                Label info = new Label("Pesanan sedang diproses...", Label.CENTER);
+                dlg.add(info, BorderLayout.SOUTH);
+            }
+        }
+        
+        dlg.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) { dlg.dispose(); }
+        });
+        dlg.setLocationRelativeTo(app);
+        dlg.setVisible(true);
+    }
+
+    private void processCustomerPayment(Pesanan p) {
+        Dialog dlg = new Dialog((Frame)app, "Pilih Metode Pembayaran", true);
+        dlg.setSize(300, 250);
+        dlg.setLayout(new GridLayout(5, 1, 5, 5));
+        dlg.setBackground(BG_LIGHT);
+        
+        Button btnCash = new Button("Cash (Bayar di Kasir)");
+        Button btnCard = new Button("Card");
+        Button btnQRIS = new Button("QRIS");
+        Button btnCancel = new Button("Batal");
+        
+        styleGoldButton(btnCash);
+        styleGoldButton(btnCard);
+        styleGoldButton(btnQRIS);
+        btnCancel.setBackground(Color.lightGray);
+        
+        btnCash.addActionListener(e -> {
+            p.setStatus("Menunggu Pembayaran Cash");
+            showMessage("Info", "Status diperbarui.\nSilakan menuju kasir untuk pembayaran tunai.");
+            dlg.dispose();
+        });
+        
+        btnCard.addActionListener(e -> {
+            processNonCash(p, new CardPayment());
+            dlg.dispose();
+        });
+        
+        btnQRIS.addActionListener(e -> {
+            processNonCash(p, new QRISPayment());
+            dlg.dispose();
+        });
+        
+        btnCancel.addActionListener(e -> dlg.dispose());
+        
+        dlg.add(new Label("  Pilih metode pembayaran:", Label.CENTER));
+        dlg.add(btnCash);
+        dlg.add(btnCard);
+        dlg.add(btnQRIS);
+        dlg.add(btnCancel);
+        
+        dlg.setLocationRelativeTo(app);
+        dlg.setVisible(true);
+    }
+    
+    private void processNonCash(Pesanan p, Pembayaran metode) {
+        int idTrx = app.getSystem().generateIdTransaksiBaru();
+        Transaksi t = new Transaksi(idTrx, p, metode);
+        t.konfirmasi(new java.util.Scanner("")); 
+        
+        if (t.isStatusKonfirmasi()) {
+            showMessage("Sukses", "Pembayaran Berhasil!\n" + buildStrukText(t));
+        } else {
+            showMessage("Gagal", "Pembayaran gagal.");
+        }
+    }
+    
+    private String buildStrukText(Transaksi t) {
+        return "Total: " + formatRupiah(t.getPesanan().hitungTotal()) + "\nLunas via " + t.getMetodePembayaran().getNamaMetode();
+    }
+
+    //helpers
     private Label sectionTitle(String text) {
         Label l = new Label("  " + text);
         l.setFont(new Font("Serif", Font.BOLD, 18));

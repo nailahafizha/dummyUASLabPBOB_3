@@ -8,6 +8,7 @@ import java.util.Scanner;
 public class CashierPanel extends Panel {
     private java.awt.List payList;
     private TextArea detailArea;
+    private Label lblMetodeInfo;
 
     public CashierPanel(AppFrame app){
         setLayout(new BorderLayout());
@@ -21,17 +22,13 @@ public class CashierPanel extends Panel {
         payList = new java.awt.List();
         detailArea = new TextArea("", 8, 40, TextArea.SCROLLBARS_VERTICAL_ONLY);
         detailArea.setEditable(false);
+        detailArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
 
         Panel center = new Panel(new GridLayout(1,2,10,10));
         center.setBackground(AppFrame.RED_DARK);
         center.add(payList);
         center.add(detailArea);
         add(center, BorderLayout.CENTER);
-
-        Choice paymentChoice = new Choice();
-        paymentChoice.add("Cash");
-        paymentChoice.add("Card");
-        paymentChoice.add("QRIS");
 
         Panel bottom = new Panel(new FlowLayout());
         bottom.setBackground(AppFrame.RED_DARK);
@@ -40,9 +37,12 @@ public class CashierPanel extends Panel {
         Button btnRefresh = new Button("Refresh");
         Button btnLogout = new Button("Logout");
         style(btnPay); style(btnRefresh); style(btnLogout);
+        
+        lblMetodeInfo = new Label("Metode: -");
+        lblMetodeInfo.setForeground(Color.white);
+        lblMetodeInfo.setFont(new Font("SansSerif", Font.BOLD, 14));
 
-        bottom.add(label("Metode:"));
-        bottom.add(paymentChoice);
+        bottom.add(lblMetodeInfo);
         bottom.add(btnPay);
         bottom.add(btnRefresh);
         bottom.add(btnLogout);
@@ -58,57 +58,65 @@ public class CashierPanel extends Panel {
             Pesanan p = getList(app).get(idx);
 
             try {
+                String methodStr = p.getMetodePembayaran();
                 Pembayaran metode;
-                String m = paymentChoice.getSelectedItem();
-                if (m.equals("Cash")) metode = new CashPayment();
-                else if (m.equals("Card")) metode = new CardPayment();
-                else metode = new QRISPayment();
+                
+                if (methodStr.equalsIgnoreCase("Card")) metode = new CardPayment();
+                else if (methodStr.equalsIgnoreCase("QRIS")) metode = new QRISPayment();
+                else metode = new CashPayment();
 
                 int newIdTrx = app.getSystem().generateIdTransaksiBaru();
                 Transaksi t = new Transaksi(newIdTrx, p, metode);
 
-                String rawInput = PaymentInputDialog.askInput((Frame) app, m, p.hitungTotal());
+                String rawInput = PaymentInputDialog.askInput((Frame) app, methodStr, p.hitungTotal());
+                
                 if (rawInput == null) {
                     showReceiptDialog(app, "Pembayaran dibatalkan.");
                     return;
                 }
 
-                Scanner sc = new Scanner(rawInput);
-                t.konfirmasi(sc);
+                double uangTunai = 0;
+                try { uangTunai = Double.parseDouble(rawInput.trim()); } catch (Exception ex) {}
+
+                t.konfirmasi(new Scanner(rawInput));
 
                 if (!t.isStatusKonfirmasi()) {
                     showReceiptDialog(app, "Pembayaran gagal. Uang tidak cukup.");
                     return;
                 }
 
-                showReceiptDialog(app, buildStrukText(t));
+                String struk = buildStrukText(t);
+                if (metode instanceof CashPayment) {
+                    double kembalian = uangTunai - p.hitungTotal();
+                    struk += "\nUang Tunai: " + formatRupiah((int)uangTunai);
+                    struk += "\nKembalian : " + formatRupiah((int)kembalian);
+                }
+
+                showReceiptDialog(app, struk);
                 load(app);
 
             } catch (Exception ex){
-                detailArea.setText("Pembayaran gagal: " + ex.getMessage());
+                detailArea.setText("Error: " + ex.getMessage());
             }
         });
 
         load(app);
     }
 
-    // Kasir bisa bayar untuk status "Selesai Dimasak" atau "Menunggu Pembayaran Cash"
     private List<Pesanan> getList(AppFrame app){
-        List<Pesanan> res = new ArrayList<>();
-        res.addAll(app.getSystem().getDaftarPesananByStatus("Selesai Dimasak"));
-        res.addAll(app.getSystem().getDaftarPesananByStatus("Menunggu Pembayaran Cash"));
-        return res;
+        List<Pesanan> list = new ArrayList<>();
+        list.addAll(app.getSystem().getDaftarPesananByStatus("Selesai Dimasak"));
+        list.addAll(app.getSystem().getDaftarPesananByStatus("Menunggu Pembayaran Cash"));
+        return list;
     }
 
     private void load(AppFrame app){
         payList.removeAll();
         for (Pesanan p : getList(app)){
-            payList.add("ID#" + p.getIdPesanan()
-                    + " | Meja " + p.getMeja().getNomor()
-                    + " | Total Rp " + p.hitungTotal()
-                    + " | " + p.getStatus());
+            payList.add("ID#" + p.getIdPesanan() + " | Meja " + p.getMeja().getNomor() + " | " + formatRupiah(p.hitungTotal()) + " | " + p.getStatus());
         }
-        detailArea.setText("Pilih pesanan untuk detail.");
+        detailArea.setText("Pilih pesanan untuk proses.");
+        lblMetodeInfo.setText("Metode: -");
     }
 
     private void showDetail(AppFrame app){
@@ -116,41 +124,55 @@ public class CashierPanel extends Panel {
         if (idx < 0) return;
         Pesanan p = getList(app).get(idx);
 
+        lblMetodeInfo.setText("Metode: " + p.getMetodePembayaran().toUpperCase());
+
         StringBuilder sb = new StringBuilder();
-        sb.append("Pesanan ID: ").append(p.getIdPesanan()).append("\n");
-        sb.append("Status: ").append(p.getStatus()).append("\n\n");
-        for (DetailPesanan d : p.getDaftarItem()){
-            sb.append("- ").append(d.getItem().getNama())
-              .append(" x").append(d.getJumlah())
-              .append(" = Rp").append(d.getSubtotal()).append("\n");
+        sb.append("ID: ").append(p.getIdPesanan()).append("\n");
+        if (p.getCustomer() != null) {
+            sb.append("Customer: ").append(p.getCustomer().getNama()).append("\n");
         }
-        sb.append("\nTOTAL: Rp ").append(p.hitungTotal());
+        sb.append("Metode Bayar: ").append(p.getMetodePembayaran()).append("\n"); 
+        sb.append("----------------\n");
+        
+        // Tampilkan item
+        for (DetailPesanan d : p.getDaftarItem()){
+            sb.append(d.getItem().getNama()).append(" x").append(d.getJumlah())
+              .append(" = ").append(formatRupiah(d.getSubtotal())).append("\n");
+        }
+        
+        sb.append("----------------\n");
+        sb.append("Subtotal: ").append(formatRupiah(p.hitungSubtotal())).append("\n");
+        sb.append("Pajak (10%): ").append(formatRupiah(p.getPajak())).append("\n");
+        sb.append("Service (5%): ").append(formatRupiah(p.getService())).append("\n");
+        sb.append("TOTAL: ").append(formatRupiah(p.hitungTotal()));
+        
         detailArea.setText(sb.toString());
     }
 
-    private String buildStrukText(Transaksi transaksi){
-        Pesanan p = transaksi.getPesanan();
+    private String buildStrukText(Transaksi t){
+        Pesanan p = t.getPesanan();
         StringBuilder sb = new StringBuilder();
 
         sb.append("========================================\n");
         sb.append("              STRUK PEMBAYARAN\n");
         sb.append("========================================\n");
-        sb.append("ID Transaksi: ").append(transaksi.getIdTransaksi()).append("\n");
+        sb.append("ID Transaksi: ").append(t.getIdTransaksi()).append("\n");
         sb.append("ID Pesanan  : ").append(p.getIdPesanan()).append("\n");
         sb.append("Meja No.    : ").append(p.getMeja().getNomor()).append("\n");
-        sb.append("Metode Bayar: ").append(transaksi.getMetodePembayaran().getNamaMetode()).append("\n");
+        sb.append("Metode Bayar: ").append(t.getMetodePembayaran().getNamaMetode()).append("\n");
         sb.append("----------------------------------------\n");
 
         for (DetailPesanan d : p.getDaftarItem()){
-            sb.append(String.format("%-20s x%d \t Rp %d\n",
-                    d.getItem().getNama(), d.getJumlah(), d.getSubtotal()));
-            if (!d.getCatatan().equals("-")){
-                sb.append("  > Catatan: ").append(d.getCatatan()).append("\n");
-            }
+            sb.append(String.format("%-20s x%d \t %s\n",
+                    d.getItem().getNama(), d.getJumlah(), formatRupiah(d.getSubtotal())));
         }
 
         sb.append("----------------------------------------\n");
-        sb.append(String.format("TOTAL BAYAR:\t\t\t Rp %d\n", p.hitungTotal()));
+        sb.append(String.format("Subtotal:\t\t %s\n", formatRupiah(p.hitungSubtotal())));
+        sb.append(String.format("Pajak (10%%):\t\t %s\n", formatRupiah(p.getPajak())));
+        sb.append(String.format("Service (5%%):\t\t %s\n", formatRupiah(p.getService())));
+        sb.append("----------------------------------------\n");
+        sb.append(String.format("GRAND TOTAL:\t\t %s\n", formatRupiah(p.hitungTotal())));
         sb.append("STATUS: LUNAS\n");
         sb.append("========================================\n");
         sb.append("      Terima Kasih Atas Kunjungan Anda\n");
@@ -161,12 +183,15 @@ public class CashierPanel extends Panel {
 
     private void showReceiptDialog(AppFrame app, String text){
         Dialog dlg = new Dialog((Frame)app, "Struk Pembayaran", true);
-        dlg.setSize(460, 520);
+        dlg.setSize(460, 600); 
         dlg.setLayout(new BorderLayout());
 
         TextArea ta = new TextArea(text);
         ta.setEditable(false);
+        ta.setFont(new Font("Monospaced", Font.PLAIN, 12)); 
+        
         Button close = new Button("Tutup");
+        style(close);
         close.addActionListener(e -> { dlg.setVisible(false); dlg.dispose(); });
 
         dlg.add(ta, BorderLayout.CENTER);
@@ -175,15 +200,13 @@ public class CashierPanel extends Panel {
         dlg.setVisible(true);
     }
 
-    private Label label(String t){
-        Label l = new Label(t);
-        l.setForeground(AppFrame.WHITE);
-        return l;
-    }
-
     private void style(Button b){
         b.setBackground(AppFrame.RED);
         b.setForeground(AppFrame.WHITE);
         b.setFont(new Font("SansSerif", Font.BOLD, 14));
+    }
+    
+    private String formatRupiah(int val) {
+        return "Rp " + val;
     }
 }
